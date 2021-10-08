@@ -1,15 +1,36 @@
+/* eslint-disable max-len */
 const db = require('../../database');
 
 class ContactRepository {
   async findAll(orderBy = 'ASC') {
     const direction = orderBy.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
 
-    const rows = await db.query(`SELECT * FROM contacts ORDER BY name ${direction}`);
+    const rows = await db.query(`
+     SELECT contacts.*, categories.name AS category_name
+     FROM contacts
+     LEFT JOIN categories ON categories.id = contacts.category_id
+     ORDER BY contacts.name ${direction}
+     `);
+
+    // categories.name AS category_name serve para apenas nessa query mudar o nome da propriedade
+
+    /*
+      INNER JOIN -> retorna apenas a interseção dos valores
+      LEFT JOIN -> retorna apenas os registros da interseção mas também os que não estão (no caso a tabela das esquerda)
+      RIGHT JOIN -> retorna apenas os registros da interseção mas também os que não estão (no caso a tabela das direita)
+      FULL JOIN -> retorna todos os registros de todas as tabelas
+    */
+
     return rows;
   }
 
   async findById(id) {
-    const [row] = await db.query('SELECT * FROM contacts WHERE id = $1', [id]); // WHERE == ONDE
+    const [row] = await db.query(`
+    SELECT contacts.*, categories.name AS category_name
+    FROM contacts
+    LEFT JOIN categories ON categories.id = contacts.category_id
+    WHERE contacts.id = $1`,
+    [id]); // WHERE == ONDE
     return row;
   }
 
